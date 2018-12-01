@@ -1,7 +1,6 @@
 #include "stdio.h"
 
 int main() {
-  printf("");
   printf("AutoPlow starting...\n\n");
 
   printf("Attempting to begin serial data read on ARD1 (Motor Controller) at /dev/ttyACM0\n");
