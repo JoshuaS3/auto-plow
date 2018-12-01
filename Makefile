@@ -2,18 +2,20 @@
 CC = gcc --std=c11
 CFLAGS = -Wall -Wextra -pedantic -Os
 SOURCES = $(shell find src/rpi -name '*.c')
-OBJECTS = $(SOURCES:c=o)
+OBJECTS = $(SOURCES:%.c=%.o)
 OUT = autoplow
 
 .PHONY: all ard1-build
 
-all: $(OUT) ard1-build
+all: $(OUT)
 
 $(OUT): $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o $(OUT)
+	$(CC) $(CFLAGS) $^ -o $@
 
-$(OBJECTS): $(SOURCES)
-	$(CC) -c $(CFLAGS) $(SOURCES)
+%.: %.c
+	$(CC) -c $(CFLAGS) $^ -o $@
+
+rpi:
 
 
 # Arduino settings
@@ -38,28 +40,28 @@ ARDUINO_CORE_ASM_SRC = $(shell find include/arduino -name '*.S')
 
 ARD1_SOURCES = $(shell find src/ard1 -name '*.cpp')
 
-ARDUINO_CORE_C = $(ARDUINO_CORE_C_SRC:%.c=%.o)
-ARDUINO_CORE_CXX = $(ARDUINO_CORE_CXX_SRC:%.cpp=%.o)
-ARDUINO_CORE_ASM = $(ARDUINO_CORE_ASM_SRC:%.S=%.o)
+ARDUINO_CORE_C = $(ARDUINO_CORE_C_SRC:%.c=%.ard)
+ARDUINO_CORE_CXX = $(ARDUINO_CORE_CXX_SRC:%.cpp=%.ard)
+ARDUINO_CORE_ASM = $(ARDUINO_CORE_ASM_SRC:%.S=%.ard)
 
-ARD1_OBJECTS = $(ARD1_SOURCES:%.cpp=%.o)
+ARD1_OBJECTS = $(ARD1_SOURCES:%.cpp=%.ard)
 
 ARD1_OUT = bin/ard1.hex
 
 
 ard1-build: $(ARD1_OUT)
 
-%.o: %.c
+%.ard: %.c
 	@echo
 	@echo Compiling Arduino C file: $< to $@
 	$(ARDUINO_CC) $(ARDUINO_CFLAGS) -I $(ARDUINO_INCLUDE) $< -o $@
 
-%.o: %.cpp
+%.ard: %.cpp
 	@echo
 	@echo Compiling Arduino C++ file: $< to $@
 	$(ARDUINO_CXX) $(ARDUINO_CXXFLAGS) -I $(ARDUINO_INCLUDE) $< -o $@
 
-%.o: %.S
+%.ard: %.S
 	@echo
 	@echo Compiling Arduino Assembly file: $< to $@
 	$(ARDUINO_CC) $(ARDUINO_CFLAGS) -I $(ARDUINO_INCLUDE) $< -o $@
