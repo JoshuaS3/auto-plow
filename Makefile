@@ -12,13 +12,14 @@ MCU = atmega328p
 
 ARDUINO_CC = avr-gcc
 ARDUINO_CXX = avr-g++
-ARDUINO_NASM = nasm
+ARDUINO_AVRDUDE = avrdude
 ARDUINO_OBJCOPY = avr-objcopy
 
 ARDUINO_FLAGS = -c -w -Os -MMD -ffunction-sections -fdata-sections -DF_CPU=$(F_CPU) -DUSB_VID=null -DUSB_PID=null -DARDUINO=106 -mmcu=$(MCU)
 ARDUINO_CFLAGS = $(ARDUINO_FLAGS)
 ARDUINO_CXXFLAGS = $(ARDUINO_FLAGS) -fno-exceptions
 
+ARDUINO_AVRDUDE_CONF = "include/arduino/avrdude.conf"
 ARDUINO_INCLUDE = "include/arduino/"
 
 ARDUINO_CORE_CXX_SRC = $(shell find include/arduino -name '*.cpp')
@@ -69,6 +70,7 @@ ard1-build: $(ARD1_OUT)
 $(ARD1_OUT): $(ARD1_OBJECTS) $(ARDUINO_CORE_CXX) $(ARDUINO_CORE_C) $(ARDUINO_CORE_ASM)
 	@echo
 	@echo Compiling Arduino objects to hex file
-	$(ARDUINO_CC) -Os -Wl,-Map,bin/main.map --gc-sections -mmcu=$(MCU) $(ARD1_OBJECTS) $(ARDUINO_CORE_CXX) $(ARDUINO_CORE_C) $(ARDUINO_CORE_ASM) -o bin/main.elf
+	$(ARDUINO_CC) -Os -Wl,-Map,bin/main.map -mmcu=$(MCU) $(ARD1_OBJECTS) $(ARDUINO_CORE_CXX) $(ARDUINO_CORE_C) $(ARDUINO_CORE_ASM) -o bin/main.elf
 	$(ARDUINO_OBJCOPY) -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 bin/main.elf bin/main.eep
 	$(ARDUINO_OBJCOPY) -O ihex -R .eeprom bin/main.elf $@
+	$(ARDUINO_AVRDUDE) -C$(ARDUINO_AVRDUDE_CONF) -v -p$(MCU) -carduino -P/dev/ttyACM0 -b115200 -D -Uflash:w:$(ARD1_OUT):i
