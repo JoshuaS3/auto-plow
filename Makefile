@@ -1,12 +1,22 @@
-# Raspberry Pi settings
+# Driver settings
 CC = gcc --std=c11
 CFLAGS = -Wall -Wextra -pedantic -Os
 SOURCES = $(shell find src/rpi -name '*.c')
 OBJECTS = $(SOURCES:c=o)
 OUT = autoplow
 
+.PHONY: all ard1-build
 
-# Arduino Settings
+all: $(OUT) ard1-build
+
+$(OUT): $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o $(OUT)
+
+$(OBJECTS): $(SOURCES)
+	$(CC) -c $(CFLAGS) $(SOURCES)
+
+
+# Arduino settings
 F_CPU = 16000000L
 MCU = atmega328p
 
@@ -35,18 +45,6 @@ ARDUINO_CORE_ASM = $(ARDUINO_CORE_ASM_SRC:%.S=%.o)
 ARD1_OBJECTS = $(ARD1_SOURCES:%.cpp=%.o)
 
 ARD1_OUT = bin/ard1.hex
-
-
-
-.PHONY: all ard1-build
-
-all: $(OUT) ard1-build
-
-$(OUT): $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o $(OUT)
-
-$(OBJECTS): $(SOURCES)
-	$(CC) -c $(CFLAGS) $(SOURCES)
 
 
 ard1-build: $(ARD1_OUT)
