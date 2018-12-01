@@ -1,5 +1,5 @@
 # Raspberry Pi settings
-CC = gcc --std=c18
+CC = gcc --std=c11
 CFLAGS = -Wall -Wextra -pedantic -Os
 SOURCES = $(shell find src/rpi -name '*.c')
 OBJECTS = $(SOURCES:c=o)
@@ -40,7 +40,7 @@ ARD1_OUT = bin/ard1.hex
 
 .PHONY: all ard1-build
 
-all: $(OUT)
+all: $(OUT) ard1-build
 
 $(OUT): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $(OUT)
