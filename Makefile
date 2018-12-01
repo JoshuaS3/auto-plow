@@ -69,8 +69,18 @@ ard1-build: $(ARD1_OUT)
 
 $(ARD1_OUT): $(ARD1_OBJECTS) $(ARDUINO_CORE_CXX) $(ARDUINO_CORE_C) $(ARDUINO_CORE_ASM)
 	@echo
-	@echo Compiling Arduino objects to hex file
+	@echo
+	@echo
+	@echo
+	@echo
+	@echo Compiling Arduino objects to $(MCU) hex
 	$(ARDUINO_CC) -Os -Wl,-Map,bin/main.map -mmcu=$(MCU) $(ARD1_OBJECTS) $(ARDUINO_CORE_CXX) $(ARDUINO_CORE_C) $(ARDUINO_CORE_ASM) -o bin/main.elf
 	$(ARDUINO_OBJCOPY) -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 bin/main.elf bin/main.eep
 	$(ARDUINO_OBJCOPY) -O ihex -R .eeprom bin/main.elf $@
-	$(ARDUINO_AVRDUDE) -C$(ARDUINO_AVRDUDE_CONF) -v -p$(MCU) -carduino -P/dev/ttyACM0 -b115200 -D -Uflash:w:$(ARD1_OUT):i
+	@echo
+	@echo
+	@echo
+	@echo
+	@echo
+	@echo Uploading $(ARD1_OUT) to /dev/ttyACM0
+	$(ARDUINO_AVRDUDE) -C$(ARDUINO_AVRDUDE_CONF) -p$(MCU) -carduino -P/dev/ttyACM0 -b115200 -D -Uflash:w:$(ARD1_OUT):i
