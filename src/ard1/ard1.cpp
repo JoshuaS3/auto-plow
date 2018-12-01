@@ -1,3 +1,5 @@
+#include "Arduino.h"
+
 // One time
 void setup() {
   pinMode(13, OUTPUT);
