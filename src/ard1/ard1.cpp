@@ -1,8 +1,10 @@
 #include "Arduino.h"
 #include "ard1.h"
+#include "reset.h"
 
 // One time
 void setup() {
+  digitalWrite(PIN_RESET, HIGH);
   pinMode(PIN, OUTPUT);
   digitalWrite(PIN, ON);
   Serial.begin(BAUD_RATE);
