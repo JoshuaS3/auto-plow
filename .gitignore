@@ -4,3 +4,5 @@
 *.a
 *.map
 *.ard
+autoplow
+bin/
