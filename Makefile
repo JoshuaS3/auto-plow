@@ -74,6 +74,7 @@ $(ARD1_OUT): $(ARD1_OBJECTS) $(ARDUINO_CORE_CXX) $(ARDUINO_CORE_C) $(ARDUINO_COR
 	@echo
 	@echo
 	@echo Compiling Arduino objects to $(MCU) hex
+	mkdir bin/
 	$(ARDUINO_CC) -Os -Wl,-Map,bin/main.map -mmcu=$(MCU) $(ARD1_OBJECTS) $(ARDUINO_CORE_CXX) $(ARDUINO_CORE_C) $(ARDUINO_CORE_ASM) -o bin/main.elf
 	$(ARDUINO_OBJCOPY) -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 bin/main.elf bin/main.eep
 	$(ARDUINO_OBJCOPY) -O ihex -R .eeprom bin/main.elf $@
@@ -97,3 +98,4 @@ clean:
 	rm -rf bin/*.elf
 	rm -rf bin/*.map
 	rm -f autoplow
+	rmdir bin/
