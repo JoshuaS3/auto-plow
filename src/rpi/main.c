@@ -9,7 +9,7 @@ int main() {
 
   printf("Attempting to begin serial data read on ARD1 (Motor Controller) at /dev/ttyACM0\n");
   FILE * ttyACM0;
-  ttyACM0 = fopen("/dev/ttyACM0", "r");
+  ttyACM0 = fopen("/dev/ttyACM0", "w+");
   if (ttyACM0) {
     printf("Successfully opened serial stream\n\n");
     printf("Attempting device reset\n");
