@@ -5,7 +5,7 @@ SOURCES = $(shell find src/rpi -name '*.c')
 OBJECTS = $(SOURCES:%.c=%.o)
 OUT = autoplow
 
-.PHONY: all ard1-build
+.PHONY: all ard1-build clean
 
 all: $(OUT)
 
@@ -84,3 +84,16 @@ $(ARD1_OUT): $(ARD1_OBJECTS) $(ARDUINO_CORE_CXX) $(ARDUINO_CORE_C) $(ARDUINO_COR
 	@echo
 	@echo Uploading $(ARD1_OUT) to /dev/ttyACM0
 	$(ARDUINO_AVRDUDE) -C$(ARDUINO_AVRDUDE_CONF) -p$(MCU) -carduino -P/dev/ttyACM0 -b115200 -D -Uflash:w:$(ARD1_OUT):i
+
+clean:
+	rm -rf include/*.o
+	rm -rf include/*.d
+	rm -rf src/rpi/*.o
+	rm -rf src/rpi/*.d
+	rm -rf src/ard1/*.ard
+	rm -rf src/ard1/*.d
+	rm -rf bin/*.hex
+	rm -rf bin/*.eep
+	rm -rf bin/*.elf
+	rm -rf bin/*.map
+	rm -f autoplow
