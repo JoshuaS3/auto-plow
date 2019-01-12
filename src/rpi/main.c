@@ -16,6 +16,7 @@ int main() {
     fputs("Restart;", ttyACM0);
     printf("Dumping contents:\n");
     char buffer[4096];
+    fputs("Brakes 0;", ttyACM0);
     while (fgets(buffer, sizeof(buffer), ttyACM0) != NULL) {
       printf("Input: ");
       printf(buffer);

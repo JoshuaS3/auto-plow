@@ -4,4 +4,5 @@
 
 void reset(void) {
   pinMode(PIN_RESET, OUTPUT);
+  digitalWrite(PIN_RESET, HIGH);
 }
