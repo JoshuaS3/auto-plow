@@ -69,6 +69,26 @@ void oninput (String message) {
     digitalWrite(PIN_ML_D, LOW);
     delay(CHANGE_DELAY);
     digitalWrite(PIN_ML_R, HIGH);
+  } else if (message == String("m0")) {
+    Serial.println("ARD1: Turning both motors off");
+    digitalWrite(PIN_MR_D, LOW);
+    digitalWrite(PIN_MR_R, LOW);
+    digitalWrite(PIN_ML_D, LOW);
+    digitalWrite(PIN_ML_R, LOW);
+  } else if (message == String("m1")) {
+    Serial.println("ARD1: Turning both motors on (Drive)");
+    digitalWrite(PIN_MR_R, LOW);
+    digitalWrite(PIN_ML_R, LOW);
+    delay(CHANGE_DELAY);
+    digitalWrite(PIN_MR_D, HIGH);
+    digitalWrite(PIN_ML_D, HIGH);
+  } else if (message == String("m-1")) {
+    Serial.println("ARD1: Turning both motors on (Reverse)");
+    digitalWrite(PIN_MR_D, LOW);
+    digitalWrite(PIN_ML_D, LOW);
+    delay(CHANGE_DELAY);
+    digitalWrite(PIN_MR_R, HIGH);
+    digitalWrite(PIN_ML_R, HIGH);
   }
 }
 
