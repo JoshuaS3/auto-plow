@@ -1,8 +1,8 @@
 # Driver settings
-CC = gcc --std=c11
-CFLAGS = -Wall -Wextra -pedantic -Os
-SOURCES = $(shell find src/rpi -name '*.c')
-OBJECTS = $(SOURCES:%.c=%.o)
+CXX = g++ --std=c++17
+CXXFLAGS = -Wall -Wextra -pedantic -Os
+SOURCES = $(shell find src/rpi -name '*.cpp')
+OBJECTS = $(SOURCES:%.cpp=%.o)
 OUT = autoplow
 
 .PHONY: all ard1-build clean
@@ -10,12 +10,10 @@ OUT = autoplow
 all: $(OUT)
 
 $(OUT): $(OBJECTS)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-%.: %.c
-	$(CC) -c $(CFLAGS) $^ -o $@
-
-rpi:
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $^ -o $@
 
 
 # Arduino settings
