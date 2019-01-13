@@ -8,7 +8,8 @@ void oninput(String message);
 
 // One time
 void setup() {
-  digitalWrite(PIN_RESET, HIGH);
+  pinMode(PIN_RESET, INPUT);
+  digitalWrite(PIN_RESET, LOW);
   serial();
   Serial.println("ARD1: Motor Controller Active");
   pinMode(PIN_BRAKES, OUTPUT);
@@ -25,6 +26,7 @@ void oninput (String message) {
   Serial.println(message);
   if (message == String("Restart")) {
     Serial.println("ARD1: Restarting...");
+    delay(500);
     reset();
   } else if (message == String("b0")) {
     Serial.println("ARD1: Turning brakes off");
@@ -95,5 +97,4 @@ void oninput (String message) {
 // Repeatedly
 void loop() {
   if (Serial.available() > 0) oninput(Serial.readStringUntil(';'));
-  delay(500);
 }
