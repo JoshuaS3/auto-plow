@@ -7,6 +7,10 @@
 #define PIN_ML_R 7   // motor left drive
 #define PIN_ML_D 8   // motor left reverse
 
+#define PIN_CH_1 11
+#define PIN_CH_2 10
+#define PIN_CH_3 12
+
 #define PIN_RESET 2
 
 #define BAUD_RATE 9600
