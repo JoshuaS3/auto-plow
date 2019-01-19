@@ -3,16 +3,18 @@
 #include "serial.h"
 #include "reset.h"
 
-#include "RoboClaw.h"
+#include "SoftwareSerial.h"
 
 
 void oninput(String message);
+SoftwareSerial roboclaw(0, 1);
 
 // One time
 void setup() {
   pinMode(PIN_RESET, INPUT);
   digitalWrite(PIN_RESET, LOW);
   serial();
+  roboclaw.begin(9600);
   Serial.println("ARD1: Motor Controller Active");
   pinMode(PIN_BRAKES, OUTPUT);
   pinMode(PIN_MR_D, OUTPUT);
@@ -118,45 +120,29 @@ void oninput (String message) {
   }
 }
 
+byte zero = 0;
 // Repeatedly
 void loop() {
-  int sensorValue2 = pulseIn(7, HIGH);
-  if (sensorValue2 > 100) Serial.println(sensorValue2);
+  if (Serial.available()) oninput(Serial.readStringUntil(';'));
+  roboclaw.write(1);
+  roboclaw.write(-127);
+  delay(2000);
+  roboclaw.write(64);
+  delay(1000);
+  roboclaw.write(127);
+  roboclaw.write(-1);
+  delay(2000);
+  roboclaw.write(-64);
+  delay(1000);
+  roboclaw.write(1);
+  roboclaw.write(-1);
+  delay(2000);
+  roboclaw.write(zero);
+  delay(1000);
+  roboclaw.write(127);
+  roboclaw.write(-127);
+  delay(2000);
+  roboclaw.write(zero);
+  delay(1000);
 }
 
-void laoop() {
-  if (Serial.available() > 0) oninput(Serial.readStringUntil(';'));
-  int ch1 = pulseIn(PIN_CH_1, HIGH);
-  int ch2 = pulseIn(PIN_CH_2, HIGH);
-  int ch3 = pulseIn(PIN_CH_3, HIGH);
-
-  int ch1_fixed = map(ch1, 1106, 1992, -500, 500);
-  int ch2_fixed = map(ch2, 997,  1992, -500, 500);
-  int ch3_fixed = map(ch3, 993,  1876, -500, 500);
-
-  Serial.print(ch1_fixed);
-  Serial.print("\t");
-  Serial.print(ch2_fixed);
-  Serial.print("\t");
-  Serial.print(ch3_fixed);
-  Serial.println();
-
-  if (ch3_fixed < -300) {
-    oninput("b0");
-  } else oninput("b1");
-
-  if (ch1_fixed > 300) {
-    oninput("mr-1");
-    oninput("ml1");
-    return;
-  } else if (ch1_fixed < -300) {
-    oninput("ml-1");
-    oninput("mr1");
-    return;
-  }
-  if (ch2_fixed > 300) {
-    oninput("m1");
-  } else if (ch2_fixed < -300) {
-    oninput("m-1");
-  } else oninput("m0");
-}

@@ -82,7 +82,7 @@ $(ARD1_OUT): $(ARD1_OBJECTS) $(ARDUINO_CORE_CXX) $(ARDUINO_CORE_C) $(ARDUINO_COR
 	@echo
 	@echo
 	@echo Uploading $(ARD1_OUT) to /dev/ttyACM0
-	$(ARDUINO_AVRDUDE) -C$(ARDUINO_AVRDUDE_CONF) -p$(MCU) -carduino -P/dev/ttyACM0 -b115200 -D -Uflash:w:$(ARD1_OUT):i
+	$(ARDUINO_AVRDUDE) -C$(ARDUINO_AVRDUDE_CONF) -p$(MCU) -carduino -P/dev/ttyACM0 -b38400 -D -Uflash:w:$(ARD1_OUT):i
 
 clean:
 	rm -rf include/*.o

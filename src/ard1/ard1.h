@@ -13,7 +13,7 @@
 
 #define PIN_RESET 2
 
-#define BAUD_RATE 9600
+#define BAUD_RATE 38400
 #define CHANGE_DELAY 350
 
 #define ON 1
