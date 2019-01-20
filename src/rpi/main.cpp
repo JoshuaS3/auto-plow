@@ -7,7 +7,7 @@ int main() {
   std::cout << "AutoPlow starting..." << std::endl;
 
   std::cout << "Attempting to set proper device configuration on ARD1" << std::endl;
-  system("stty -F /dev/ttyACM0 38400 raw -clocal -echo");
+  system("stty -F /dev/ttyACM0 9600 raw -clocal -echo");
 
   std::cout << "Attempting to begin serial data read on ARD1 (Motor Controller) at /dev/ttyACM0" << std::endl;
   std::fstream ttyACM0;
