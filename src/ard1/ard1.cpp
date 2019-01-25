@@ -83,18 +83,21 @@ void loop() {
     motor_left = ch2_fixed;
   } else if (ch1_fixed > 64 && ch2_fixed < 64) {
     motor_left = ch2_fixed;
-    motor_right = 64 - (64 - ch1_fixed);
+    motor_right = (64 - (64 - ch1_fixed)) - 64;
   } else if (ch1_fixed < 64 && ch2_fixed < 64) {
     motor_right = ch2_fixed;
-    motor_left = 64 - (ch1_fixed + 64);
+    motor_left = (64 - (ch1_fixed + 64)) + 64;
   } else if (ch2_fixed < 64) {
     motor_left = ch2_fixed;
     motor_right = ch2_fixed;
+  } else if (ch1_fixed < 64) {
+    motor_right = (64 - ch1_fixed) + 64;
+    motor_left = (64 + ch1_fixed) - 64;
   }
 
-  Serial.print(motor_left - 64);
+  Serial.print(motor_left);
   Serial.print("\t");
-  Serial.println(motor_right - 64);
+  Serial.println(motor_right);
 
 //  roboclaw.write(127);
 //  roboclaw.write(255);
