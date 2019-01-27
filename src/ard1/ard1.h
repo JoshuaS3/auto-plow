@@ -23,14 +23,17 @@
 #define PIN_CH_5 12
 #define PIN_CH_6 13
 
-#define PIN_PLOW_LIFT_UP A0
-#define PIN_PLOW_LIFT_DOWN A1
-#define PIN_PLOW_TILT_LEFT A2
-#define PIN_PLOW_TILT_RIGHT A3
+#define PIN_RELAY_1 A0
+#define PIN_RELAY_2 A1
+#define PIN_RELAY_3 A2
+#define PIN_RELAY_4 A3
+#define PIN_RELAY_5 A4
+#define PIN_RELAY_6 A5
 
 // Other settings
 
-#define CONTROLLER_SENSITIVITY 4 // 1-5
+#define RIGHT_JOYSTICK_SENSITIVITY 4 // 1-5
+#define LEFT_JOYSTICK_SENSITIVITY 1
 
 #define RADIO_TIMEOUT 1000
 

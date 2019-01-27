@@ -18,21 +18,27 @@ void setup() {
 
   Serial.println("ARD1: ARD1 serial communications active");
 
+  Serial.println("ARD1: Sending power to RoboClaw logic side");
   pinMode(ROBOCLAW_LOGIC, OUTPUT);
   digitalWrite(ROBOCLAW_LOGIC, HIGH);
 
-  Serial.print("ARD1: Beginning RoboClaw Motor Controller serial at baud rate ");
+  Serial.print("ARD1: Beginning RoboClaw serial at baud rate ");
   Serial.println(ROBOCLAW_BAUD);
   roboclaw.begin(ROBOCLAW_BAUD);
 
+  Serial.println("Enabling switch pins");
   pinMode(PIN_MOTOR_BRAKES, OUTPUT);
   pinMode(PIN_LIGHTS, OUTPUT);
 
-  pinMode(PIN_PLOW_LIFT_UP, OUTPUT);
-  pinMode(PIN_PLOW_LIFT_DOWN, OUTPUT);
-  pinMode(PIN_PLOW_TILT_LEFT, OUTPUT);
-  pinMode(PIN_PLOW_TILT_RIGHT, OUTPUT);
+  Serial.println("Enabling relay pins");
+  pinMode(PIN_RELAY_1, OUTPUT);
+  pinMode(PIN_RELAY_2, OUTPUT);
+  pinMode(PIN_RELAY_3, OUTPUT);
+  pinMode(PIN_RELAY_4, OUTPUT);
+  pinMode(PIN_RELAY_5, OUTPUT);
+  pinMode(PIN_RELAY_6, OUTPUT);
 
+  Serial.println("Enabling radio receiver pins");
   pinMode(PIN_CH_1, INPUT);
   pinMode(PIN_CH_2, INPUT);
   pinMode(PIN_CH_3, INPUT);
@@ -42,9 +48,15 @@ void setup() {
 }
 
 // Calculate sensitivity threshold
-int controller_threshold = (5 - CONTROLLER_SENSITIVITY) * 10;
-int joystick_max = 64 + controller_threshold;
-int joystick_min = 64 - controller_threshold;
+int left_joystick_threshold = (5 - LEFT_JOYSTICK_SENSITIVITY) * 10;
+int right_joystick_threshold = (5 - RIGHT_JOYSTICK_SENSITIVITY) * 10;
+
+int left_joystick_max = 64 + left_joystick_threshold;
+int left_joystick_min = 64 - left_joystick_threshold;
+
+int right_joystick_max = 64 + right_joystick_threshold;
+int right_joystick_min = 64 - right_joystick_threshold;
+
 
 // Repeatedly
 void loop() {
@@ -94,17 +106,17 @@ void loop() {
 
   // Calculate tilt direction
   int tilt = 0;
-  if (ch4_fixed < joystick_min) tilt = -1;
-  if (ch4_fixed > joystick_max) tilt = 1;
+  if (ch4_fixed < left_joystick_min) tilt = -1;
+  if (ch4_fixed > left_joystick_max) tilt = 1;
 
   // Calculate lift direction
   int lift = 0;
-  if (ch3_fixed < joystick_min) lift = -1;
-  if (ch3_fixed > joystick_max) lift = 1;
+  if (ch3_fixed < left_joystick_min) lift = -1;
+  if (ch3_fixed > left_joystick_max) lift = 1;
 
   // Calculate motor directions
-  if (ch1_fixed < joystick_max && ch1_fixed > joystick_min) ch1_fixed = 64;
-  if (ch2_fixed < joystick_max && ch2_fixed > joystick_min) ch2_fixed = 64;
+  if (ch1_fixed < right_joystick_max && ch1_fixed > right_joystick_min) ch1_fixed = 64;
+  if (ch2_fixed < right_joystick_max && ch2_fixed > right_joystick_min) ch2_fixed = 64;
 
   int motor_left = 64;
   int motor_right = 64;
@@ -135,8 +147,7 @@ void loop() {
   motor_right += 128;
 
   #ifdef DEBUG
-  Serial.println("\e[1;1H\e[2J");
-  Serial.println("Debug Information");
+  Serial.print("\e[1;1H\e[2J");
   Serial.print("Left");
   Serial.print("\t");
   Serial.print("Right");
@@ -167,28 +178,22 @@ void loop() {
   roboclaw.write((byte)motor_left);
   roboclaw.write((byte)motor_right);
 
-  // Plow tilt
+  // Plow tilt (HIGH = LOW, LOW = HIGH)
   if (tilt == -1) {
-    digitalWrite(PIN_PLOW_TILT_RIGHT, LOW);
-    digitalWrite(PIN_PLOW_TILT_LEFT, HIGH);
+
   } else if (tilt == 1) {
-    digitalWrite(PIN_PLOW_TILT_LEFT, LOW);
-    digitalWrite(PIN_PLOW_TILT_RIGHT, HIGH);
+
   } else {
-    digitalWrite(PIN_PLOW_TILT_RIGHT, LOW);
-    digitalWrite(PIN_PLOW_TILT_LEFT, LOW);
+
   }
 
   // Plow lift
   if (lift == -1) {
-    digitalWrite(PIN_PLOW_LIFT_UP, LOW);
-    digitalWrite(PIN_PLOW_LIFT_DOWN, HIGH);
-  } else if (tilt == 1) {
-    digitalWrite(PIN_PLOW_LIFT_DOWN, LOW);
-    digitalWrite(PIN_PLOW_LIFT_UP, HIGH);
+
+  } else if (lift == 1) {
+
   } else {
-    digitalWrite(PIN_PLOW_LIFT_UP, LOW);
-    digitalWrite(PIN_PLOW_LIFT_DOWN, LOW);
+
   }
 
   // Lights
