@@ -180,20 +180,32 @@ void loop() {
 
   // Plow tilt (HIGH = LOW, LOW = HIGH)
   if (tilt == -1) {
-
+    digitalWrite(PIN_RELAY_4, HIGH);
+    digitalWrite(PIN_RELAY_5, LOW);
+    digitalWrite(PIN_RELAY_6, LOW);
   } else if (tilt == 1) {
-
+    digitalWrite(PIN_RELAY_5, HIGH);
+    digitalWrite(PIN_RELAY_6, HIGH);
+    digitalWrite(PIN_RELAY_4, LOW);
   } else {
-
+    digitalWrite(PIN_RELAY_4, HIGH);
+    digitalWrite(PIN_RELAY_5, HIGH);
+    digitalWrite(PIN_RELAY_6, HIGH);
   }
 
   // Plow lift
   if (lift == -1) {
-
+    digitalWrite(PIN_RELAY_1, HIGH);
+    digitalWrite(PIN_RELAY_2, LOW);
+    digitalWrite(PIN_RELAY_3, LOW);
   } else if (lift == 1) {
-
+    digitalWrite(PIN_RELAY_2, HIGH);
+    digitalWrite(PIN_RELAY_3, HIGH);
+    digitalWrite(PIN_RELAY_1, LOW);
   } else {
-
+    digitalWrite(PIN_RELAY_1, HIGH);
+    digitalWrite(PIN_RELAY_2, HIGH);
+    digitalWrite(PIN_RELAY_3, HIGH);
   }
 
   // Lights
