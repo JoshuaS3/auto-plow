@@ -26,6 +26,7 @@ void setup() {
   Serial.println(ROBOCLAW_BAUD);
   roboclaw.begin(ROBOCLAW_BAUD);
 
+<<<<<<< HEAD
   Serial.println("Enabling switch pins");
   pinMode(PIN_MOTOR_BRAKES, OUTPUT);
   pinMode(PIN_LIGHTS, OUTPUT);
@@ -39,6 +40,16 @@ void setup() {
   pinMode(PIN_RELAY_6, OUTPUT);
 
   Serial.println("Enabling radio receiver pins");
+=======
+  pinMode(PIN_MOTOR_BRAKES, OUTPUT);
+  pinMode(PIN_LIGHTS, OUTPUT);
+
+  pinMode(PIN_PLOW_LIFT_UP, OUTPUT);
+  pinMode(PIN_PLOW_LIFT_DOWN, OUTPUT);
+  pinMode(PIN_PLOW_TILT_LEFT, OUTPUT);
+  pinMode(PIN_PLOW_TILT_RIGHT, OUTPUT);
+
+>>>>>>> a85aa7c2aa323a809d7357d17b4ce3a517dd965f
   pinMode(PIN_CH_1, INPUT);
   pinMode(PIN_CH_2, INPUT);
   pinMode(PIN_CH_3, INPUT);
@@ -47,6 +58,7 @@ void setup() {
   pinMode(PIN_CH_6, INPUT);
 }
 
+<<<<<<< HEAD
 // Calculate sensitivity threshold
 int left_joystick_threshold = (5 - LEFT_JOYSTICK_SENSITIVITY) * 10;
 int right_joystick_threshold = (5 - RIGHT_JOYSTICK_SENSITIVITY) * 10;
@@ -57,11 +69,18 @@ int left_joystick_min = 64 - left_joystick_threshold;
 int right_joystick_max = 64 + right_joystick_threshold;
 int right_joystick_min = 64 - right_joystick_threshold;
 
+=======
+int controller_threshold = (5 - CONTROLLER_SENSITIVITY) * 10;
+int joystick_max = 64 + controller_threshold;
+int joystick_min = 64 - controller_threshold;
+int brakes = 1;
+>>>>>>> a85aa7c2aa323a809d7357d17b4ce3a517dd965f
 
 // Repeatedly
 void loop() {
   int start = millis();
 
+<<<<<<< HEAD
   // Read from radio receiver
   int ch1 = pulseIn(PIN_CH_1, RADIO_TIMEOUT);
   int ch2 = pulseIn(PIN_CH_2, RADIO_TIMEOUT);
@@ -69,6 +88,14 @@ void loop() {
   int ch4 = pulseIn(PIN_CH_4, RADIO_TIMEOUT);
   int ch5 = pulseIn(PIN_CH_5, RADIO_TIMEOUT);
   int ch6 = pulseIn(PIN_CH_6, RADIO_TIMEOUT);
+=======
+  int ch1 = pulseIn(PIN_CH_1, 1000);
+  int ch2 = pulseIn(PIN_CH_2, 1000);
+  int ch3 = pulseIn(PIN_CH_3, 1000);
+  int ch4 = pulseIn(PIN_CH_4, 1000);
+  int ch5 = pulseIn(PIN_CH_5, 1000);
+  int ch6 = pulseIn(PIN_CH_6, 1000);
+>>>>>>> a85aa7c2aa323a809d7357d17b4ce3a517dd965f
 
   // ch1: right joystick horizontal, 1099, 1978
   // ch2: right joystick vertical,   1003, 1986
@@ -101,6 +128,7 @@ void loop() {
   int ch2_fixed = map(ch2, 1003, 1986, 1, 127);
   int ch3_fixed = map(ch3, 993, 1885, 1, 127);
   int ch4_fixed = map(ch4, 1023, 1986, 1, 127);
+<<<<<<< HEAD
   int ch5_fixed = (ch5 > 1500); // 1 or 0
   int ch6_fixed = (ch6 > 1500); // 1 or 0
 
@@ -117,6 +145,21 @@ void loop() {
   // Calculate motor directions
   if (ch1_fixed < right_joystick_max && ch1_fixed > right_joystick_min) ch1_fixed = 64;
   if (ch2_fixed < right_joystick_max && ch2_fixed > right_joystick_min) ch2_fixed = 64;
+=======
+  int ch5_fixed = (ch5 > 1500);
+  int ch6_fixed = (ch6 > 1500);
+
+  int tilt = 0;
+  if (ch4_fixed < joystick_min) tilt = -1;
+  if (ch4_fixed > joystick_max) tilt = 1;
+
+  int lift = 0;
+  if (ch3_fixed < joystick_min) lift = -1;
+  if (ch3_fixed > joystick_max) lift = 1;
+
+  if (ch1_fixed < joystick_max && ch1_fixed > joystick_min) ch1_fixed = 64;
+  if (ch2_fixed < joystick_max && ch2_fixed > joystick_min) ch2_fixed = 64;
+>>>>>>> a85aa7c2aa323a809d7357d17b4ce3a517dd965f
 
   int motor_left = 64;
   int motor_right = 64;
@@ -137,20 +180,31 @@ void loop() {
     motor_left -= (64 - ch2_fixed);
   }
 
+<<<<<<< HEAD
   // Constrain motor directions
+=======
+>>>>>>> a85aa7c2aa323a809d7357d17b4ce3a517dd965f
   if (motor_right > 127) motor_right = 127;
   if (motor_right < 1) motor_right = 1;
   if (motor_left > 127) motor_left = 127;
   if (motor_left < 1) motor_left = 1;
 
+<<<<<<< HEAD
   // Offset motor_right number for RoboClaw serial format
   motor_right += 128;
 
   #ifdef DEBUG
+=======
+  motor_right += 128;
+
+  int end = millis();
+
+>>>>>>> a85aa7c2aa323a809d7357d17b4ce3a517dd965f
   Serial.print("\e[1;1H\e[2J");
   Serial.print("Left");
   Serial.print("\t");
   Serial.print("Right");
+<<<<<<< HEAD
   Serial.print("\t");
   Serial.print("Lights");
   Serial.print("\t");
@@ -209,22 +263,78 @@ void loop() {
   }
 
   // Lights
+=======
+  Serial.print("\t");
+  Serial.print("Lights");
+  Serial.print("\t");
+  Serial.print("Brakes + Motors");
+  Serial.print("\t\t");
+  Serial.print("Plow Tilt");
+  Serial.print("\t");
+  Serial.print("Plow Lift");
+  Serial.println();
+
+  Serial.print(motor_left);
+  Serial.print("\t");
+  Serial.print(motor_right);
+  Serial.print("\t");
+  Serial.print(ch6_fixed);
+  Serial.print("\t");
+  Serial.print(ch5_fixed);
+  Serial.print("\t\t\t");
+  Serial.print(tilt);
+  Serial.print("\t\t");
+  Serial.println(lift);
+
+  Serial.print("Cycle time: ");
+  Serial.println(end - start);
+
+  roboclaw.write((byte)motor_left);
+  roboclaw.write((byte)motor_right);
+
+  if (tilt == -1) {
+    digitalWrite(PIN_PLOW_TILT_RIGHT, LOW);
+    digitalWrite(PIN_PLOW_TILT_LEFT, HIGH);
+  } else if (tilt == 0) {
+    digitalWrite(PIN_PLOW_TILT_RIGHT, LOW);
+    digitalWrite(PIN_PLOW_TILT_LEFT, LOW);
+  } else if (tilt == 1) {
+    digitalWrite(PIN_PLOW_TILT_LEFT, LOW);
+    digitalWrite(PIN_PLOW_TILT_RIGHT, HIGH);
+  }
+  if (lift == -1) {
+    digitalWrite(PIN_PLOW_LIFT_UP, LOW);
+    digitalWrite(PIN_PLOW_LIFT_DOWN, HIGH);
+  } else if (lift == 0) {
+    digitalWrite(PIN_PLOW_LIFT_UP, LOW);
+    digitalWrite(PIN_PLOW_LIFT_DOWN, LOW);
+  } else if (tilt == 1) {
+    digitalWrite(PIN_PLOW_LIFT_DOWN, LOW);
+    digitalWrite(PIN_PLOW_LIFT_UP, HIGH);
+  }
+>>>>>>> a85aa7c2aa323a809d7357d17b4ce3a517dd965f
   if (ch6_fixed) {
     digitalWrite(PIN_LIGHTS, HIGH);
   } else {
     digitalWrite(PIN_LIGHTS, LOW);
   }
+<<<<<<< HEAD
 
   // Power to motor controller
+=======
+>>>>>>> a85aa7c2aa323a809d7357d17b4ce3a517dd965f
   if (ch5_fixed) {
     digitalWrite(PIN_MOTOR_BRAKES, HIGH);
   } else {
     digitalWrite(PIN_MOTOR_BRAKES, LOW);
   }
+<<<<<<< HEAD
 
   int end = millis();
   #ifdef DEBUG
   Serial.print("Cycle time: ");
   Serial.println(end - start);
   #endif
+=======
+>>>>>>> a85aa7c2aa323a809d7357d17b4ce3a517dd965f
 }
