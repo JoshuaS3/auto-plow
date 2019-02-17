@@ -9,6 +9,7 @@
 
 #include "SoftwareSerial.h"
 SoftwareSerial roboclaw(ROBOCLAW_RX, ROBOCLAW_TX);
+SoftwareSerial roboclaw2(ROBOCLAW2_RX, ROBOCLAW2_TX);
 
 // One time
 void setup() {
@@ -22,9 +23,14 @@ void setup() {
   pinMode(ROBOCLAW_LOGIC, OUTPUT);
   digitalWrite(ROBOCLAW_LOGIC, HIGH);
 
-  Serial.print("ARD1: Beginning RoboClaw serial at baud rate ");
+  Serial.println("ARD1: Powering secondary RoboClaw logic side");
+  pinMode(ROBOCLAW2_LOGIC, OUTPUT);
+  digitalWrite(ROBOCLAW2_LOGIC, HIGH);
+
+  Serial.print("ARD1: Beginning RoboClaw serials at baud rate ");
   Serial.println(ROBOCLAW_BAUD);
   roboclaw.begin(ROBOCLAW_BAUD);
+  roboclaw2.begin(ROBOCLAW_BAUD);
 
   Serial.println("ARD1: Configuring switch pins");
   pinMode(PIN_MOTOR_BRAKES, OUTPUT);
@@ -85,14 +91,26 @@ void loop() {
   int ch6_fixed = (ch6 > 1500); // 1 or 0
 
   // Calculate tilt direction
-  int tilt = 0;
-  if (ch4_fixed < left_joystick_min) tilt = -1;
-  if (ch4_fixed > left_joystick_max) tilt = 1;
+  if (ch3_fixed < left_joystick_max && ch3_fixed > left_joystick_min) ch3_fixed = 64;
+  if (ch4_fixed < left_joystick_max && ch4_fixed > left_joystick_min) ch4_fixed = 64;
 
-  // Calculate lift direction
-  int lift = 0;
-  if (ch3_fixed < left_joystick_min) lift = -1;
-  if (ch3_fixed > left_joystick_max) lift = 1;
+  int tilt = 64; // ch4_fixed
+  int lift = 64; // ch3_fixed
+
+  if (ch3_fixed > 64) {
+    lift += (ch3_fixed - 64);
+  } else if (ch3_fixed < 64) {
+    lift -= (64 - ch3_fixed);
+  }
+
+  if (ch4_fixed > 64) {
+    tilt += (ch4_fixed - 64);
+  } else if (ch4_fixed < 64) {
+    tilt -= (64 - ch4_fixed);
+  }
+
+  tilt = constrain(tilt, 1, 127);
+  lift = constrain(lift, 1, 127);
 
   // Calculate motor directions
   if (ch1_fixed < right_joystick_max && ch1_fixed > right_joystick_min) ch1_fixed = 64;
@@ -102,11 +120,11 @@ void loop() {
   int motor_right = 64;
 
   if (ch1_fixed < 64) {
-    motor_right = 64 + (64 - ch1_fixed);
-    motor_left = 64 - (64 - ch1_fixed);
+    motor_right += (64 - ch1_fixed);
+    motor_left -= (64 - ch1_fixed);
   } else if (ch1_fixed > 64) {
-    motor_left = 64 + (ch1_fixed - 64);
-    motor_right = 64 - (ch1_fixed - 64);
+    motor_left += (ch1_fixed - 64);
+    motor_right -= (ch1_fixed - 64);
   }
 
   if (ch2_fixed > 64) {
@@ -121,8 +139,9 @@ void loop() {
   motor_right = constrain(motor_right, 1, 127);
   motor_left = constrain(motor_left, 1, 127);
 
-  // Offset motor_right number for RoboClaw serial format
+  // Offset numbers for RoboClaw serial format
   motor_right += 128;
+  lift += 128;
 
   #ifdef DEBUG
   Serial.print("\e[1;1H\e[2J");
@@ -152,9 +171,12 @@ void loop() {
   Serial.println(lift);
   #endif
 
-  // Write motor information to RoboClaw
+  // Write motor information to RoboClaws
   roboclaw.write((byte)motor_left);
   roboclaw.write((byte)motor_right);
+
+  roboclaw2.write((byte)tilt);
+  roboclaw2.write((byte)lift);
 
   // Lights
   if (ch6_fixed) {
@@ -166,8 +188,12 @@ void loop() {
   // Power to motor controller
   if (ch5_fixed) {
     digitalWrite(PIN_MOTOR_BRAKES, HIGH);
+    digitalWrite(ROBOCLAW_LOGIC, HIGH);
+    digitalWrite(ROBOCLAW2_LOGIC, HIGH);
   } else {
     digitalWrite(PIN_MOTOR_BRAKES, LOW);
+    digitalWrite(ROBOCLAW_LOGIC, LOW);
+    digitalWrite(ROBOCLAW2_LOGIC, LOW);
   }
 
   int end = millis();
