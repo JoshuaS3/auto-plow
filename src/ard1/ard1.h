@@ -9,9 +9,13 @@
 #define PIN_RESET 2
 
 #define ROBOCLAW_LOGIC 3
+#define ROBOCLAW2_LOGIC A0
 
 #define ROBOCLAW_RX 4
 #define ROBOCLAW_TX 5
+
+#define ROBOCLAW2_RX A1
+#define ROBOCLAW2_TX A2
 
 #define PIN_MOTOR_BRAKES 6
 #define PIN_LIGHTS 7
