@@ -1,2 +1,2 @@
 # AutoPlow
-A remote control snow plow. Consists of 2 Arduinos and 1 Raspberry Pi.
+<a href="https://imgur.com/usMtR75"><img src="https://i.imgur.com/usMtR75.png" title="source: imgur.com" /></a>
