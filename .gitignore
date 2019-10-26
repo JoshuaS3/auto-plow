@@ -1,2 +1,6 @@
 # Sublime Text project files
 *.sublime-*
+
+# ESP-IDF Build and build options
+build/
+sdkconfig*
