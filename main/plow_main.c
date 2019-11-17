@@ -19,19 +19,20 @@ static void onrestart(void) {
 	delay(250);
 }
 
+static int ping_count = 1;
 static void pingTask(void * pingOK) {
 	configASSERT(((bool)pingOK) == true);
 	static int beeps;
+	static int i;
 	for (;;) {
-		delay(2400);
-		printf("ping #%d: %i ticks\n", ++beeps, xTaskGetTickCount());
-		gpio_set_level(STATUS_YELLOW, HIGH);
-		delay(0200);
-		gpio_set_level(STATUS_YELLOW, LOW);
-		delay(0200);
-		gpio_set_level(STATUS_YELLOW, HIGH);
-		delay(0200);
-		gpio_set_level(STATUS_YELLOW, LOW);
+		delay(3000);
+		printf("ping #%dx%d: %i ticks\n", ++beeps, ping_count, xTaskGetTickCount());
+		for (i = 0; i < ping_count; i++) {
+			gpio_set_level(STATUS_YELLOW, HIGH);
+			delay(0200);
+			gpio_set_level(STATUS_YELLOW, LOW);
+			delay(0200);
+		}
 	}
 }
 
@@ -51,6 +52,7 @@ static void radioTask(void * arg) {
 		R5 = pulseIn(RADIO_5, true);
 		R6 = pulseIn(RADIO_6, true);
 		if (R1 + R2 + R3 + R4 + R5 + R6 != 0) {
+			ping_count = 2;
 			printf("Radio RX:\t%i\t%i\t%i\t%i\t%i\t%i\n",
 				map(R1, 160000, 320000, 0, 1000),
 				map(R2, 160000, 320000, 0, 1000),
@@ -59,6 +61,7 @@ static void radioTask(void * arg) {
 				map(R5, 160000, 320000, 0, 1000)>500,
 				map(R6, 160000, 320000, 0, 1000)>500);
 		} else {
+			ping_count = 1;
 			printf("Radio RX:\t-\t-\t-\t-\t-\t-\n");
 		}
 		esp_task_wdt_reset();
