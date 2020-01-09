@@ -1,6 +1,6 @@
 // plow_main.c
 // Main logic controller for the snow plow
-// Copyright (c) Joshua 'joshuas3' Stockin 2019
+// Copyright (c) Joshua 'joshuas3' Stockin 2020
 
 #include "plow_main.h"
 #include "pulseIn.h"
@@ -51,15 +51,15 @@ static void radioTask(void * arg) {
 		R4 = pulseIn(RADIO_4, true);
 		R5 = pulseIn(RADIO_5, true);
 		R6 = pulseIn(RADIO_6, true);
-		if (R1 + R2 + R3 + R4 + R5 + R6 != 0) {
+		if ((R1 & R2 & R3 & R4 & R5 & R6) != 0) {
 			ping_count = 2;
-			printf("Radio RX:\t%i\t%i\t%i\t%i\t%i\t%i\n",
-				map(R1, 160000, 320000, 0, 1000),
-				map(R2, 160000, 320000, 0, 1000),
-				map(R3, 160000, 320000, 0, 1000),
-				map(R4, 160000, 320000, 0, 1000),
-				map(R5, 160000, 320000, 0, 1000)>500,
-				map(R6, 160000, 320000, 0, 1000)>500);
+			unsigned int R1m = map(R1, 160000, 320000, 0, 1000);
+			unsigned int R2m = map(R2, 160000, 320000, 0, 1000);
+			unsigned int R3m = map(R3, 160000, 320000, 0, 1000);
+			unsigned int R4m = map(R4, 160000, 320000, 0, 1000);
+			unsigned int R5m = map(R5, 160000, 320000, 0, 1000)>500;
+			unsigned int R6m = map(R6, 160000, 320000, 0, 1000)>500;
+			printf("Radio RX:\t%i\t%i\t%i\t%i\t%i\t%i\n", R1m, R2m, R3m, R4m, R5m, R6m);
 		} else {
 			ping_count = 1;
 			printf("Radio RX:\t-\t-\t-\t-\t-\t-\n");
