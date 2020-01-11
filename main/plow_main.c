@@ -93,9 +93,9 @@ static void radioTask(void * arg) {
 				unsigned int blade_pitch = 0;
 				unsigned int blade_yaw = 0;
 				if (R3m > 600) {
-					blade_pitch = map(R3m, 600, 1000, 192, 255);
+					blade_pitch = 192 - map(R3m, 600, 1000, 1, 63);
 				} else if (R3m < 400) {
-					blade_pitch = map(R3m, 0, 400, 128, 192);
+					blade_pitch = 192 + (64 - map(R3m, 0, 400, 1, 63));
 				} else {
 					blade_pitch = 192;
 				}
