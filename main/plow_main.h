@@ -10,7 +10,7 @@
 
 #define RADIO_TIMEOUT 1000
 
-#define ROBOCLAW_BAUD 38400
+#define CONTROL_BAUDRATE 38400
 
 // GPIO pin numbers
 #define STATUS_GREEN  23
@@ -23,5 +23,16 @@
 #define RADIO_4 35
 #define RADIO_5 32
 #define RADIO_6 33
+
+#define SOLENOID_SALT 25
+#define SOLENOID_MOTORS 26
+#define BATTERY_MOTORCONTROL 27
+#define BATTERY_BLADECONTROL 14
+#define RELAY_BOARD 12
+
+#define UART_MOTOR_CONTROL 16
+#define UART_BLADE_CONTROL 17
+
+#define NULL_PIN 13
 
 #endif
