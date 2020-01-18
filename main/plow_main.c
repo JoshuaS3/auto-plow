@@ -77,11 +77,11 @@ static void radioTask(void * arg) {
 				if (R5m) {
 					gpio_set_level(BATTERY_MOTORCONTROL, !R5m);
 					gpio_set_level(BATTERY_BLADECONTROL, !R5m);
-					delay(200);
+					delay(500);
 					gpio_set_level(SOLENOID_MOTORS, !R5m);
 				} else {
 					gpio_set_level(SOLENOID_MOTORS, !R5m);
-					delay(200);
+					delay(500);
 					gpio_set_level(BATTERY_MOTORCONTROL, !R5m);
 					gpio_set_level(BATTERY_BLADECONTROL, !R5m);
 				}
@@ -90,48 +90,50 @@ static void radioTask(void * arg) {
 			// Motor controller configuration
 			if (R5m) {
 				// Blade control
-				unsigned int blade_pitch = 0;
-				unsigned int blade_yaw = 0;
+				unsigned int blade_pitch = 192;
+				unsigned int blade_yaw = 64;
 				if (R3m > 600) {
-					blade_pitch = 192 - map(R3m, 600, 1000, 1, 63);
+					blade_pitch -= map(R3m, 600, 1000, 1, 63);
 				} else if (R3m < 400) {
-					blade_pitch = 192 + (64 - map(R3m, 0, 400, 1, 63));
-				} else {
-					blade_pitch = 192;
+					blade_pitch += (64 - map(R3m, 0, 400, 1, 63));
 				}
 				if (R4m > 600) {
 					blade_yaw = map(R4m, 600, 1000, 64, 127);
 				} else if (R4m < 400) {
 					blade_yaw = map(R4m, 0, 400, 1, 64);
-				} else {
-					blade_yaw = 64;
 				}
 
 				// Motor control
-				unsigned char motor_left = 0;
-				unsigned char motor_right = 0;
+				short motor_left = 64;
+				short motor_right = 192;
 				if (R2m > 600) {
 					motor_left = map(R2m, 600, 1000, 64, 127);
 					motor_right = map(R2m, 600, 1000, 192, 255);
 				} else if (R2m < 400) {
 					motor_left = map(R2m, 0, 400, 1, 64);
 					motor_right = map(R2m, 0, 400, 128, 192);
-				} else {
-					motor_left = 64;
-					motor_right = 192;
 				}
 				if (R1m > 600) { // right turn
-					motor_left = 64 + map(R1m, 600, 1000, 1, 63);
-					motor_right = 192 - map(R1m, 600, 1000, 1, 63);
+					motor_left += map(R1m, 600, 1000, 1, 63);
+					motor_right -= map(R1m, 600, 1000, 1, 63);
 				} else if (R1m < 400) { // left turn
-					motor_left = map(R1m, 0, 400, 1, 63);
-					motor_right = 192 + (64 - map(R1m, 0, 400, 1, 63));
+					motor_left -= (64 - map(R1m, 0, 400, 1, 63));
+					motor_right += (64 - map(R1m, 0, 400, 1, 63));
 				}
+
+				// Constrain motor signals
+				if (motor_left < 1) motor_left = 1;
+				if (motor_left > 127) motor_left = 127;
+				if (motor_right < 128) motor_right = 128;
+				if (motor_right > 255) motor_right = 255;
+
 				printf("Motors:\tpitch\tyaw\tleft\tright\n");
 				printf("Motors:\t%i\t%i\t%i\t%i\n", blade_pitch, blade_yaw, motor_left, motor_right);
+
 				char motor_bytes[] = {motor_left, motor_right};
-				char blade_bytes[] = {blade_pitch, blade_yaw};
 				uart_write_bytes(uart_motor_control, (const char*)motor_bytes, 2);
+
+				char blade_bytes[] = {blade_pitch, blade_yaw};
 				uart_write_bytes(uart_blade_control, (const char*)blade_bytes, 2);
 			} else {
 				printf("Radio RX:\t%i\t%i\t%i\t%i\t%i\t%i\n", R1m, R2m, R3m, R4m, R5m, R6m);
@@ -196,6 +198,8 @@ void app_main(void)
 		.baud_rate = CONTROL_BAUDRATE,
 		.data_bits = UART_DATA_8_BITS,
 		.parity = UART_PARITY_DISABLE,
+		.stop_bits = UART_STOP_BITS_1,
+		.flow_ctrl = UART_HW_FLOWCTRL_DISABLE
 	};
 	ESP_ERROR_CHECK(uart_param_config(uart_motor_control, &uart_config));
 	ESP_ERROR_CHECK(uart_param_config(uart_blade_control, &uart_config));
@@ -206,6 +210,8 @@ void app_main(void)
 	const int uart_buffer_size = 256;
 	ESP_ERROR_CHECK(uart_driver_install(uart_motor_control, uart_buffer_size, uart_buffer_size, 0, NULL, 0));
 	ESP_ERROR_CHECK(uart_driver_install(uart_blade_control, uart_buffer_size, uart_buffer_size, 0, NULL, 0));
+	ESP_ERROR_CHECK(uart_set_mode(uart_motor_control, UART_MODE_UART));
+	ESP_ERROR_CHECK(uart_set_mode(uart_blade_control, UART_MODE_UART));
 
 	printf("registering shutdown function\n");
 	esp_register_shutdown_handler(onrestart);
