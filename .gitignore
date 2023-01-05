@@ -1,3 +1,2 @@
-# ESP-IDF Build and build options
+# ESP-IDF Build
 build/
-sdkconfig*
