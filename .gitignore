@@ -1,2 +1,2 @@
-# ESP-IDF Build
 build/
+sdkconfig.old
