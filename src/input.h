@@ -20,7 +20,7 @@
 
 // input utilities
 #define NUM_RADIO_CHANNELS     10
-#define RADIO_PULSE_STOPGAP_US 5000 // length of transmission block separation in microseconds
+#define RADIO_PULSE_STOPGAP_US 3500 // minimum length of transmission block separation in microseconds
 
 // input functions
 esp_err_t setup_radio_and_rotenc_input( void ); // config, ISR creation, task creation
@@ -32,7 +32,7 @@ void input_handler_task( void* arg );
 // queue input event structure
 typedef struct xInputEvent {
     uint8_t type;
-    uint32_t data;
+    uint16_t data;
 } xInputEvent;
 
 // input event types

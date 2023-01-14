@@ -17,7 +17,7 @@ if not $(which idf.py):
 else:
     print("idf.py already on path")
 
-mkdir -p "$SCRIPT_SOURCE_DIR/build"
+mkdir -p @(SCRIPT_SOURCE_DIR)/build
 
 if "b" in ARGS:
 
@@ -35,4 +35,7 @@ if "b" in ARGS:
     cd @(SCRIPT_SOURCE_DIR)
 
 if "f" in ARGS:
-    idf.py flash
+    idf.py flash -p /dev/ttyUSB0
+
+if "m" in ARGS:
+    idf.py monitor -p /dev/ttyUSB0

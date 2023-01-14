@@ -27,16 +27,18 @@
 
 static const char* TAG = "input.c";
 
-static uint32_t current_radio_channel = 0;
-static uint32_t radio_channels[NUM_RADIO_CHANNELS] = {0};
-static QueueHandle_t xInputQueue;
+static uint8_t current_radio_channel = 0;
+static uint16_t radio_channels[NUM_RADIO_CHANNELS + 1] = {0};
+static bool updated = false;
+
+QueueHandle_t xInputQueue;
 gptimer_handle_t pulse_timer = NULL;
 
 esp_err_t setup_radio_and_rotenc_input( void ) {
 
     ESP_LOGI( TAG, "creating input queue" );
 
-    xInputQueue = xQueueCreate( 10, sizeof( xInputEvent* ) ); // xInputEvent from input.h
+    xInputQueue = xQueueCreate( 400, sizeof( xInputEvent ) ); // xInputEvent from input.h
     ESP_RETURN_ON_FALSE( xInputQueue != 0, ESP_FAIL, TAG, "xQueueCreate failed" );
 
     ESP_LOGI( TAG, "configuring RADIO_PPM pin for input, pull_down_en" );
@@ -49,25 +51,33 @@ esp_err_t setup_radio_and_rotenc_input( void ) {
     };
     ESP_RETURN_ON_ERROR( gpio_config( &radio_pin_conf ), TAG, "gpio_config failed" );
 
-    ESP_LOGI( TAG, "creating positive edge RADIO_PPM interrupt for radio_pulse callback" );
-
-    ESP_RETURN_ON_ERROR( gpio_set_intr_type( RADIO_PPM, GPIO_INTR_POSEDGE ), TAG, "gpio_set_intr_type failed" );
-    ESP_RETURN_ON_ERROR( gpio_isr_handler_add( RADIO_PPM, radio_pulse, NULL ), TAG, "gpio_isr_handler_add failed" );
-    ESP_RETURN_ON_ERROR( gpio_intr_enable( RADIO_PPM ), TAG, "gpio_intr_enable failed" );
-
-    ESP_RETURN_ON_ERROR( gpio_wakeup_enable( RADIO_PPM, GPIO_INTR_POSEDGE ), TAG, "gpio_wakeup_enable failed" );
+    ESP_LOGI( TAG, "configuring and starting hardware gptimer (1MHz)" );
 
     gptimer_config_t timer_config = {
         .clk_src = GPTIMER_CLK_SRC_DEFAULT,
         .direction = GPTIMER_COUNT_UP,
         .resolution_hz = 1000000, // 1MHz, microsecond precision
     };
-    ESP_RETURN_ON_ERROR( gptimer_new_timer( &timer_config, &pulse_timer ), TAG, "gpitimer_new_timer failed" );
+    ESP_RETURN_ON_ERROR( gptimer_new_timer( &timer_config, &pulse_timer ), TAG, "gptimer_new_timer failed" );
     ESP_RETURN_ON_ERROR( gptimer_enable( pulse_timer ), TAG, "gptimer_enable failed" );
-    ESP_RETURN_ON_ERROR( gptimer_start( pulse_timer ), TAG, "gptimer_enable failed" );
+    ESP_RETURN_ON_ERROR( gptimer_start( pulse_timer ), TAG, "gptimer_start failed" );
+
+    ESP_LOGI( TAG, "creating positive edge RADIO_PPM interrupt for radio_pulse callback" );
+
+    ESP_RETURN_ON_ERROR( gpio_set_intr_type( RADIO_PPM, GPIO_INTR_POSEDGE ), TAG, "gpio_set_intr_type failed" );
+    ESP_RETURN_ON_ERROR( gpio_isr_handler_add( RADIO_PPM, radio_pulse, NULL ), TAG, "gpio_isr_handler_add failed" );
+    ESP_RETURN_ON_ERROR( gpio_intr_enable( RADIO_PPM ), TAG, "gpio_intr_enable failed" );
+
+    // wakeup_enable not allowed for rising edge interrupts
+    // TODO: move to sleep handler
+    // ESP_RETURN_ON_ERROR( gpio_wakeup_enable( RADIO_PPM, GPIO_INTR_POSEDGE ), TAG, "gpio_wakeup_enable failed" );
+
+    ESP_LOGI( TAG, "creating input handler task" );
 
     TaskHandle_t input_task = NULL;
-    xTaskCreate( input_handler_task, "input_handler_task", 400, NULL, 2, &input_task ); // stack size 400 bytes, priority 2
+    xTaskCreate( input_handler_task, "input_handler_task", 2048, NULL, 20, &input_task ); // stack size 400 bytes, priority 2
+
+    ESP_LOGI( TAG, "input setup done" );
 
     return ESP_OK;
 
@@ -79,56 +89,29 @@ void IRAM_ATTR radio_pulse( void* arg ) {
     uint64_t offset = 0;
     gptimer_get_raw_count( pulse_timer, &offset );
 
-    // insert timer value into queue
-    xInputEvent pulse_event = {
-        .type = INPUT_EVENT_RADIOPULSE,
-        .data = offset,
-    };
-    xQueueSendFromISR( xInputQueue, &pulse_event, NULL );
+    if (offset >= RADIO_PULSE_STOPGAP_US || current_radio_channel == NUM_RADIO_CHANNELS) {
+        radio_channels[NUM_RADIO_CHANNELS] = offset;
+        current_radio_channel = 0;
+    } else {
+        radio_channels[current_radio_channel++] = offset;
+    }
+    updated = true;
 
     // reset timer
     gptimer_set_raw_count( pulse_timer, 0 );
-
-    // debug log event
-    ESP_DRAM_LOGD( TAG, "INTR: received radio pulse (offset %lu), queued", offset );
 
 }
 
 void input_handler_task( void* arg ) {
     // clears input event queue
 
-    xInputEvent event;
+    //xInputEvent event;
     for ( ;; ) {
-        while ( xQueueReceive( xInputQueue, &event, 0 ) ) {
+        /*
+        while ( xQueueReceive( xInputQueue, &event, 2 ) ) {
 
             if ( event.type == INPUT_EVENT_RADIOPULSE ) {
                 // ppm radio receiver handling
-
-                if ( event.data >= RADIO_PULSE_STOPGAP_US ) {
-
-                    // pulse gap is larger than designated stopgap time,
-                    // indicates end of a stopgap (beginning of transmission);
-                    // reset data
-                    current_radio_channel = 0;
-                    for ( int i = 0; i < NUM_RADIO_CHANNELS; i++ ) {
-                        radio_channels[i] = 0;
-                    }
-
-                } else {
-
-                    if ( ++current_radio_channel >= NUM_RADIO_CHANNELS ) {
-                        // surpassed number of expected pulses without a stopgap;
-                        // something's wrong, continue until next stopgap
-                        continue;
-                    }
-
-                    // valid data; since the time between the Nth pulse and the
-                    // Nth-1 pulse indicates the value of channel N-1, set it
-                    // accordingly
-                    radio_channels[ current_radio_channel - 1 ] = event.data;
-
-                    ESP_LOGD( TAG, "radio channel %lu: %lu", current_radio_channel, event.data );
-                }
 
             } else if ( event.type == INPUT_EVENT_ROTENCSW ) {
 
@@ -140,8 +123,13 @@ void input_handler_task( void* arg ) {
 
             }
 
+        }*/
+        if (updated) {
+            ESP_LOGD( TAG, "\nCHANNELS\nch1:  %u\nch2:  %u\nch3:  %u\nch4:  %u\nch5:  %u\nch6:  %u\nch7:  %u\nch8:  %u\nch9:  %u\nch10: %u\ngap dist: %u\n", radio_channels[0], radio_channels[1], radio_channels[2], radio_channels[3], radio_channels[4], radio_channels[5], radio_channels[6], radio_channels[7], radio_channels[8], radio_channels[9], radio_channels[10] );
+            updated = false;
         }
 
+        vTaskDelay(10);
         taskYIELD(); // queue is empty, don't waste anymore processor time
     }
 
